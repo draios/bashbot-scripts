@@ -45,15 +45,20 @@ This repo is to hold generic, sharable scripts that can be used in bashbot.
 # Channel[id]: []
 ```
 
-### getRandomCards.sh
+### cardsAgasintHumanity.sh
 ```
 # Assumes two text files. One of questions, and another of answers:
 
-./getRandomCards.sh ../against-humanity/questions.txt ../against-humanity/answers.txt
+./cardsAgasintHumanity.sh --action random --questions-file ../against-humanity/questions.txt --answers-file ../against-humanity/answers.txt
 
-# Q ==> Tonights main event, _ vs. _.
-# A ==> Explosive decompression.
-# A ==> The chronic.
+# Tonights main event, _ vs. _.
+# 1> Explosive decompression.
+# 2> The chronic.
+
+# Can also be used to get a random line in any arbitrary text file
+./cardsAgasintHumanity.sh --action question --questions-file ./cat-facts.txt
+
+# On average, cats spend 2/3 of every day sleeping. That means a nine-year-old cat has been awake for only three years of its life.
 ```
 
 
