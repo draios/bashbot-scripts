@@ -25,7 +25,7 @@ EOF
     echo "$RESPONSE" | jq '.'
     ;;
   "ids" )
-    echo "$RESPONSE" | jq -r '.members[] | select(.deleted == false) | .id' | sort | sed -e 's/\\(.*\\)/<@\\1>/g'
+    echo "$RESPONSE" | jq -r '.members[] | select(.deleted == false) | .id' | sort | sed -e 's/\(.*\)/<@\1>/g'
     ;;
   "raw" )
     echo "$RESPONSE"
