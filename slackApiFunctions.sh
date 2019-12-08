@@ -24,8 +24,11 @@ EOF
   "json" )
     echo "$RESPONSE" | jq '.'
     ;;
-  "ids" )
+  "idtags" )
     echo "$RESPONSE" | jq -r '.members[] | select(.deleted == false) | .id' | sort | sed -e 's/\(.*\)/<@\1>/g'
+    ;;
+  "ids" )
+    echo "$RESPONSE" | jq -r '.members[] | select(.deleted == false) | .id' | sort
     ;;
   "raw" )
     echo "$RESPONSE"

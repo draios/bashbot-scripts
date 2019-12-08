@@ -1,23 +1,32 @@
 #!/bin/bash
 
 IFS='' read -r -d '' banner <<"EOF"
----------------------------------------------------------------
-banner 
----------------------------------------------------------------
+----------------------------------------------
+ _____ _            _       ___  ______ _____ 
+/  ___| |          | |     / _ \ | ___ \_   _|
+\ `--.| | __ _  ___| | __ / /_\ \| |_/ / | |  
+ `--. \ |/ _` |/ __| |/ / |  _  ||  __/  | |  
+/\__/ / | (_| | (__|   <  | | | || |    _| |_ 
+\____/|_|\__,_|\___|_|\_\ \_| |_/\_|    \___/ 
+                                              
+----------------------------------------------
+
 EOF
 
 IFS='' read -r -d '' help <<"EOF"
-Usage: ./slackApi.sh [arguments]
-    --slack-base     [slack-api-base-url]
-    --slack-token    [slack-api-key]
-    --endpoint       [slack-endpoint]
+Usage: ./slackApi.sh  [arguments]
+    --slack-base      [slack-api-base-url]
+    --slack-token     [slack-api-key]
+    --endpoint        [slack-endpoint]
+    --get-id-from-tag [slack-id-tag]
+    --get-tag-from-id [slack-id]
 
 EOF
-help="$banner\n$help"
 PROJECT_ROOT=$(pwd)
 [ ! -f "$PROJECT_ROOT/slackApiFunctions.sh" ] && echo "Missing slackApiFunctions.sh file" && exit 1
 source "$PROJECT_ROOT/slackApiFunctions.sh"
 
+USER_TAG=""
 VERBOSE=0
 SLACK_API_BASE=https://slack.com/api
 OUTPUT=raw
@@ -33,6 +42,10 @@ while [[ $# -gt 0 ]] && [[ "$1" == "--"* ]]; do
          SLACK_TOKEN="$1"; shift;;
       "--endpoint" )
          ENDPOINT="$1"; shift;;
+      "--get-id-from-tag" )
+         USER_TAG_TO_ID="$1"; shift;;
+      "--get-tag-from-id" )
+         USER_ID_TO_TAG="$1"; shift;;
       "--output" )
          OUTPUT="$1"; shift;;
       "--user-id" )
@@ -44,10 +57,18 @@ while [[ $# -gt 0 ]] && [[ "$1" == "--"* ]]; do
   esac
 done
 
+if [ ! -z "$USER_TAG_TO_ID" ]; then
+  echo "$USER_TAG_TO_ID" | sed -e 's/<@//g' | sed -e 's/>//g'
+  exit 0
+fi
+if [ ! -z "$USER_ID_TO_TAG" ]; then
+  echo "<@$USER_ID_TO_TAG>"
+  exit 0
+fi
 
-[ -z "$SLACK_TOKEN" ] && echo "must define/export slack token" && exit 1
-[ -z "$SLACK_API_BASE" ] && echo "must define slack base url" && exit 1
-[ -z "$ENDPOINT" ] && echo "must define endpoint" && exit 1
+[ -z "$SLACK_TOKEN" ] && echo "must define/export slack token" && echo "$banner$help" && exit 1
+[ -z "$SLACK_API_BASE" ] && echo "must define slack base url" && echo "$banner$help" && exit 1
+[ -z "$ENDPOINT" ] && echo "must define endpoint" && echo "$banner$help" && exit 1
 
 case "$ENDPOINT" in
   "users.list" )
