@@ -2,13 +2,13 @@
 
 IFS='' read -r -d '' banner <<"EOF"
 ----------------------------------------------
- _____ _            _       ___  ______ _____ 
+ _____ _            _       ___  ______ _____
 /  ___| |          | |     / _ \ | ___ \_   _|
-\ `--.| | __ _  ___| | __ / /_\ \| |_/ / | |  
- `--. \ |/ _` |/ __| |/ / |  _  ||  __/  | |  
-/\__/ / | (_| | (__|   <  | | | || |    _| |_ 
-\____/|_|\__,_|\___|_|\_\ \_| |_/\_|    \___/ 
-                                              
+\ `--.| | __ _  ___| | __ / /_\ \| |_/ / | |
+ `--. \ |/ _` |/ __| |/ / |  _  ||  __/  | |
+/\__/ / | (_| | (__|   <  | | | || |    _| |_
+\____/|_|\__,_|\___|_|\_\ \_| |_/\_|    \___/
+
 ----------------------------------------------
 
 EOF
@@ -17,9 +17,13 @@ IFS='' read -r -d '' help <<"EOF"
 Usage: ./slackApi.sh  [arguments]
     --slack-base      [slack-api-base-url]
     --slack-token     [slack-api-key]
-    --endpoint        [slack-endpoint]
+    --slack-channel   [slack-channel-id]
+    --endpoint        [users.list|users.info|chat.postMessage|chat.postEphemeral]
     --get-id-from-tag [slack-id-tag]
     --get-tag-from-id [slack-id]
+    --message         [free-form-text]
+    --thread-ts       [timestamp]
+    --output          [json|raw]
 
 EOF
 PROJECT_ROOT=$(pwd)
@@ -40,6 +44,8 @@ while [[ $# -gt 0 ]] && [[ "$1" == "--"* ]]; do
          SLACK_API_BASE="$1"; shift;;
       "--slack-token" )
          SLACK_TOKEN="$1"; shift;;
+      "--slack-channel" )
+         CHANNEL="$1"; shift;;
       "--endpoint" )
          ENDPOINT="$1"; shift;;
       "--get-id-from-tag" )
@@ -50,6 +56,10 @@ while [[ $# -gt 0 ]] && [[ "$1" == "--"* ]]; do
          OUTPUT="$1"; shift;;
       "--user-id" )
          USER_ID="$1"; shift;;
+      "--message" )
+         MESSAGE="$@"; shift;;
+      "--thread-ts" )
+         THREAD_TS="$1"; shift;;
       "--verbose" )
          VERBOSE=1
          ;;
@@ -77,7 +87,12 @@ case "$ENDPOINT" in
   "users.info" )
     slack_users_info $SLACK_API_BASE $SLACK_TOKEN $ENDPOINT $USER_ID $VERBOSE $OUTPUT
     ;;
+  "chat.postMessage" )
+    curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer '$SLACK_TOKEN -d '{"text": "'"
+    $MESSAGE"'", "channel": "'$CHANNEL'", "thread_ts": "'$THREAD_TS'"}' $SLACK_API_BASE/$ENDPOINT
+    ;;
+  "chat.postEphemeral" )
+    curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer '$SLACK_TOKEN -d '{"text": "'"$MESSAGE"'", "channel": "'$CHANNEL'", "user": "'$USER_ID'"}' $SLACK_API_BASE/$ENDPOINT
+    ;;
   *) echo >&2 "endpoint not found: $@"; exit 1;;
 esac
-
-
