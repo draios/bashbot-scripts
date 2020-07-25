@@ -9,6 +9,12 @@ SORT_ORDER="reverse"
 if [ $SORT_BY = "county" ]; then
   SORT_ORDER="."
 fi
+LIMIT=100
+if [ -n "$2" ]; then
+  if [ $2 -gt 0 ] && [ $2 -lt 60 ]; then
+    LIMIT=$2
+  fi
+fi
 
 
 # Get population of california by county (json)
@@ -33,7 +39,11 @@ while IFS= read -r county; do
   this_percentage=$(echo "$this_tmp_percentage" | sed -e 's/\(.\)\(.\)\(.\)/\1.\2\3\%/g' | sed -e 's/00\./0./g')
   tmp_data=',{"county":"'$this_county'","infected":'$this_totalcountconfirmed',"population":'$this_population',"percentage":"'$this_percentage'"}'$tmp_data
 done <<< "$data"
-better_data=$(echo "$tmp_data" | sed -e 's/^,//g' | sed -e 's/^\(.*\)$/[\1]/g' | jq -c '. | sort_by(.'$SORT_BY') | '$SORT_ORDER'[]')
+better_data=$(echo "$tmp_data" | sed -e 's/^,//g' | sed -e 's/^\(.*\)$/[\1]/g' | jq -c '. | sort_by(.'$SORT_BY' | head -$LIMIT) | '$SORT_ORDER'[]')
+if [ -n "$2" ]; then
+  echo "$better_data" | jq --slurp '.'
+  exit 0
+fi
 echo "Californians coronavirus infected by county: $TARGET_DATE (sort: $SORT_BY)"
 echo "╭─────────────────┬────────────┬─────────────┬──────────────╮"
 echo "│     County      │  Infected  │  Population │   %Infected  │"
