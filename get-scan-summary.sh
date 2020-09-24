@@ -41,9 +41,9 @@ if [ -z "$1" ]; then
   echo "Must pass container url as first argument"
   exit 1
 fi
-outputas=json
+outputas="$2"
 if [ -z "$2" ]; then
-  outputas=text
+  outputas=slack
 fi
 # Does container scan already exist? 
 if [ -n "$(sdc-cli scanning image list | grep $1)" ]; then
@@ -65,10 +65,16 @@ if [ -n "$(sdc-cli scanning image list | grep $1)" ]; then
   if [ "$outputas" == "json" ]; then
     echo '{"name":"'$1'","sha":"'$sha'","status":"'$containerPassFail'","asOf":"'$asof'","url":"'$reportUrl'","os_vulnerabilities":{"Critical":['$(listify "$vulnsOS" Critical)'],"High":['$(listify "$vulnsOS" High)'],"Medium":['$(listify "$vulnsOS" Medium)'],"Low":['$(listify "$vulnsOS" Low)'],"Negligible":['$(listify "$vulnsOS" Negligible)'],"Unknown":['$(listify "$vulnsOS" Unknown)']},"non_os_vulnerabilities":{"Critical":['$(listify "$vulnsNonOS" Critical)'],"High":['$(listify "$vulnsNonOS" High)'],"Medium":['$(listify "$vulnsNonOS" Medium)'],"Low":['$(listify "$vulnsNonOS" Low)'],"Negligible":['$(listify "$vulnsNonOS" Negligible)'],"Unknown":['$(listify "$vulnsNonOS" Unknown)']}}'
   else
-    echo "$passFail"
-    echo "\`\`\`$1"
+    if [ "$outputas" == "slack" ]; then
+        echo "$passFail"
+        echo "\`\`\`"
+        echo "$1"
+    else
+        echo "$reportUrl"
+        echo "$containerPassFail - $1"
+    fi
     echo "$vulnsCount vulnerabilities as of $asof"
-    if [ $vulnsCount -gt 0 ]; then
+    # if [ $vulnsCount -gt 0 ]; then
       echo "╭────────────┬────────┬────────╮"
       echo "│ Severity   │ OS     │ Non-OS │"
       echo "├────────────┼────────┼────────┤"
@@ -79,9 +85,10 @@ if [ -n "$(sdc-cli scanning image list | grep $1)" ]; then
       echo '│ Negligible │ '"$(listCount "$vulnsOS" Negligible)"' │ '"$(listCount "$vulnsNonOS" Negligible)"' │'
       echo '│ Unknown    │ '"$(listCount "$vulnsOS" Unknown)"' │ '"$(listCount "$vulnsNonOS" Unknown)"' │'
       echo "╰────────────┴────────┴────────╯"
+    # fi
+    if [ "$outputas" == "slack" ]; then
+        echo "\`\`\`"
     fi
-
-    echo "\`\`\`"
   fi
 else
   echo "This container was not found in $SDC_URL"
