@@ -29,24 +29,24 @@ listCount() {
   pad="     "
   echo "$(printf "%s %s" "$tmp" "${pad:${#tmp}}")"
 }
-if [ -z "$SDC_URL" ]; then
+if [[ -z "$SDC_URL" ]]; then
   echo "Missing SDC_URL env var"
   exit 1
 fi
-if [ -z "$SDC_SECURE_TOKEN" ]; then
+if [[ -z "$SDC_SECURE_TOKEN" ]]; then
   echo "Missing SDC_SECURE_TOKEN env var"
   exit 1
 fi
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
   echo "Must pass container url as first argument"
   exit 1
 fi
 outputas="$2"
-if [ -z "$2" ]; then
+if [[ -z "$2" ]]; then
   outputas=slack
 fi
 # Does container scan already exist? 
-if [ -n "$(sdc-cli scanning image list | grep $1)" ]; then
+if [[ -n "$(sdc-cli scanning image list | awk '{print $1}' | grep -E '^'"$1"'$')" ]]; then
   # Were there any vulnerabilities?
   vulnsCount=$(sdc-cli scanning image vuln $1 | awk '{print $1}' | tail +2 | sort | uniq | wc -l)
   encodedContainerSource=$(urlencode $1)
@@ -54,7 +54,7 @@ if [ -n "$(sdc-cli scanning image list | grep $1)" ]; then
   sha=$(echo "$evaluation" | grep imageDigest | awk '{print $2}')
   containerPassFail=$(echo "$evaluation" | grep status | awk '{print $2}')
   reportUrl=$(echo "$SDC_URL/secure/#/scanning/scan-results/$encodedContainerSource/$sha/summaries")
-  if [ -n "$(echo $containerPassFail | grep pass)" ]; then
+  if [[ -n "$(echo $containerPassFail | grep pass)" ]]; then
     passFail="<$reportUrl|:white_check_mark: PASSED - $1 (report)>"
   else
     passFail="<$reportUrl|:octagonal_sign: FAILED - $1 (report)>"
@@ -62,10 +62,10 @@ if [ -n "$(sdc-cli scanning image list | grep $1)" ]; then
   asof=$(echo "$evaluation" | grep last_evaluation | awk '{print $2}')
   vulnsOS=$(sdc-cli scanning image vuln $1 os | tail +2)
   vulnsNonOS=$(sdc-cli scanning image vuln $1 non-os | tail +2)
-  if [ "$outputas" == "json" ]; then
+  if [[ "$outputas" == "json" ]]; then
     echo '{"name":"'$1'","sha":"'$sha'","status":"'$containerPassFail'","asOf":"'$asof'","url":"'$reportUrl'","os_vulnerabilities":{"Critical":['$(listify "$vulnsOS" Critical)'],"High":['$(listify "$vulnsOS" High)'],"Medium":['$(listify "$vulnsOS" Medium)'],"Low":['$(listify "$vulnsOS" Low)'],"Negligible":['$(listify "$vulnsOS" Negligible)'],"Unknown":['$(listify "$vulnsOS" Unknown)']},"non_os_vulnerabilities":{"Critical":['$(listify "$vulnsNonOS" Critical)'],"High":['$(listify "$vulnsNonOS" High)'],"Medium":['$(listify "$vulnsNonOS" Medium)'],"Low":['$(listify "$vulnsNonOS" Low)'],"Negligible":['$(listify "$vulnsNonOS" Negligible)'],"Unknown":['$(listify "$vulnsNonOS" Unknown)']}}'
   else
-    if [ "$outputas" == "slack" ]; then
+    if [[ "$outputas" == "slack" ]]; then
         echo "$passFail"
         echo "\`\`\`"
         echo "$1"
@@ -86,7 +86,7 @@ if [ -n "$(sdc-cli scanning image list | grep $1)" ]; then
       echo '│ Unknown    │ '"$(listCount "$vulnsOS" Unknown)"' │ '"$(listCount "$vulnsNonOS" Unknown)"' │'
       echo "╰────────────┴────────┴────────╯"
     # fi
-    if [ "$outputas" == "slack" ]; then
+    if [[ "$outputas" == "slack" ]]; then
         echo "\`\`\`"
     fi
   fi
