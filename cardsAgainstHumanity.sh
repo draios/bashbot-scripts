@@ -52,7 +52,7 @@ NUMBER_OF_ANSWERS=1
 if [[ "$ACTION" != "answer" ]]; then
   [[ ! -f "$QUESTIONS_FILE" ]] && echo "questions file not found" && exit 1;
   RANDOM_QUESTION=$(cat $QUESTIONS_FILE | shuf -n 1)
-  NUMBER_OF_ANSWERS=$(echo $RANDOM_QUESTION | grep -o "_" | wc -l | awk '{print $1}')
+  NUMBER_OF_ANSWERS=$(echo $RANDOM_QUESTION | grep -oE "__*\ " | wc -l | awk '{print $1}')
   echo "$RANDOM_QUESTION"
 fi
 
