@@ -51,7 +51,7 @@ if [[ -n "$(sdc-cli scanning image list | awk '{print $1}' | grep -E '^'"$1"'$')
   vulnsCount=$(sdc-cli scanning image vuln $1 | awk '{print $1}' | tail +2 | sort | uniq | wc -l)
   encodedContainerSource=$(urlencode $1)
   evaluation=$(sdc-cli scanning image evaluation $1)
-  sha=$(echo "$evaluation" | grep imageDigest | awk '{print $2}')
+  sha=$(echo "$evaluation" | grep image_digest | awk '{print $2}')
   containerPassFail=$(echo "$evaluation" | grep status | awk '{print $2}')
   reportUrl=$(echo "$SDC_URL/secure/#/scanning/scan-results/$encodedContainerSource/$sha/summaries")
   if [[ -n "$(echo $containerPassFail | grep pass)" ]]; then
